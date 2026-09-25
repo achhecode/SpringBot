@@ -71,7 +71,7 @@
 				<configuration>
 					<jvmArguments>
 						-Djava.awt.headless=false
-						<!-- -Dapple.awt.UIElement=true -->
+						-Dapple.awt.UIElement=true
 						<!-- Tells macOS this Java process is a background/UI-element application -->
 					</jvmArguments>
 				</configuration>

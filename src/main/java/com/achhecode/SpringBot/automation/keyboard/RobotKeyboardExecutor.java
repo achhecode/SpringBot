@@ -16,15 +16,15 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
 
     private Robot robot;
 
-    @Value("${automation.keyboard.initial-delay-ms:1000}")
-    private int initialDelayMs;
+    @Value("${automation.keyboard.preparation-delay-ms:0}")
+    private int preparationDelayMs;
 
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
     @Value("${automation.keyboard.switch-delay-ms:0}")
     private int switchDelayMs;
-
+    
     private Robot getRobot() {
         if (robot == null) {
             try {
@@ -63,17 +63,6 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
 
         try {
 
-            // Give the user time to prepare before automation starts
-            if (initialDelayMs > 0) {
-                log.debug(
-                        "Initial automation delay. executionId={}, delayMs={}",
-                        executionId,
-                        initialDelayMs
-                );
-
-                robot.delay(initialDelayMs);
-            }
-
             /*
              * Switch application FIRST.
              *
@@ -105,32 +94,21 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
                 }
             }
 
-            // Execute actual keyboard commands
-            int index = 0;
+            long start = System.nanoTime();
+
 
             for (KeyboardCommand command : commands) {
-
-                log.debug(
-                        "Executing command. executionId={}, index={}, command={}",
-                        executionId,
-                        index,
-                        command
-                );
-
                 robot.keyPress(command.getKeyCode());
                 robot.keyRelease(command.getKeyCode());
-
-                index++;
-
-                if (delayMs > 0) {
-                    robot.delay(delayMs);
-                }
             }
 
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+
             log.info(
-                    "Keyboard automation completed. executionId={}, executedCommands={}",
+                    "Keyboard commands executed. executionId={}, count={}, elapsedMs={}",
                     executionId,
-                    commands.size()
+                    commands.size(),
+                    elapsedMs
             );
 
         } catch (Exception e) {

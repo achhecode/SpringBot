@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j 
 @RestController
 @RequestMapping("/api/automation")
-public class AutomationController {
+public class ArrowAutomationController {
 
     private final AutomationService automationService;
 
-    public AutomationController(AutomationService automationService) {
+    public ArrowAutomationController(AutomationService automationService) {
         this.automationService = automationService;
     }
 
@@ -26,8 +26,6 @@ public class AutomationController {
             @RequestParam String instruction,
             @RequestParam(defaultValue = "0") int delayMS
     ) {
-
-        log.info("Request received!!!");
 
         automationService.executeKeyboard(instruction, delayMS);
 
