@@ -1,0 +1,30 @@
+package com.achhecode.SpringBot.controller;
+
+import com.achhecode.SpringBot.service.AutomationService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/automation")
+public class AutomationController {
+
+    private final AutomationService automationService;
+
+    public AutomationController(AutomationService automationService) {
+        this.automationService = automationService;
+    }
+
+
+    // POST /api/automation/keyboard?instruction=UP,UP,UP,DOWN,LEFT,LEFT,RIGHT
+
+    // POST /api/automation/keyboard?instruction=UP,UP,UP,DOWN,LEFT,LEFT,RIGHT&delayMS=10
+    @PostMapping("/keyboard")
+    public String keyboard(
+            @RequestParam String instruction,
+            @RequestParam(defaultValue = "0") int delayMS
+    ) {
+
+        automationService.executeKeyboard(instruction, delayMS);
+
+        return "Keyboard automation executed";
+    }
+}
