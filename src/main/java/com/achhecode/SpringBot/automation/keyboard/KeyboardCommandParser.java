@@ -8,6 +8,7 @@ import java.util.List;
 @Component
 public class KeyboardCommandParser {
 
+    @SuppressWarnings("null")
     public List<KeyboardCommand> parse(String input) {
 
         if (input == null || input.isBlank()) {
