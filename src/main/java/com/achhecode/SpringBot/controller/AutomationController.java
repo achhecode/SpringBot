@@ -1,8 +1,12 @@
 package com.achhecode.SpringBot.controller;
 
 import com.achhecode.SpringBot.service.AutomationService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j 
 @RestController
 @RequestMapping("/api/automation")
 public class AutomationController {
@@ -22,6 +26,8 @@ public class AutomationController {
             @RequestParam String instruction,
             @RequestParam(defaultValue = "0") int delayMS
     ) {
+
+        log.info("Request received!!!");
 
         automationService.executeKeyboard(instruction, delayMS);
 
