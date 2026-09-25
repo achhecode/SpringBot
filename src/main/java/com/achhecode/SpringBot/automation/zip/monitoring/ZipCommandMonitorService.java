@@ -1,16 +1,16 @@
-package com.achhecode.SpringBot.automation.keyboard.monitoring;
+package com.achhecode.SpringBot.automation.zip.monitoring;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class KeyboardMonitorService {
+public class ZipCommandMonitorService {
 
-    private final KeyboardMonitor keyboardMonitor;
+    private final ZipCommandMonitor keyboardMonitor;
 
-    public KeyboardMonitorService(
-            KeyboardMonitor keyboardMonitor
+    public ZipCommandMonitorService(
+            ZipCommandMonitor keyboardMonitor
     ) {
         this.keyboardMonitor = keyboardMonitor;
     }

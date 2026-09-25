@@ -1,10 +1,10 @@
 package com.achhecode.SpringBot.exception;
 
-public class KeyboardExecutionException extends RuntimeException {
+public class ZipCommandExecutionException extends RuntimeException {
 
     private final String executionId;
 
-    public KeyboardExecutionException(
+    public ZipCommandExecutionException(
             String message,
             String executionId,
             Throwable cause

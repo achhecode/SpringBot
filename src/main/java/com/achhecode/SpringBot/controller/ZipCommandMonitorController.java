@@ -1,27 +1,32 @@
 package com.achhecode.SpringBot.controller;
 
-import com.achhecode.SpringBot.automation.keyboard.monitoring.KeyboardMonitorService;
 import org.springframework.web.bind.annotation.*;
+
+import com.achhecode.SpringBot.automation.zip.monitoring.ZipCommandMonitorService;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/automation/keyboard/track")
-public class KeyboardMonitorController {
+@RequestMapping("/api/zip/command/track")
+public class ZipCommandMonitorController {
 
-    private final KeyboardMonitorService keyboardMonitorService;
+    private final ZipCommandMonitorService zipCommandMonitorService;
 
-    public KeyboardMonitorController(
-            KeyboardMonitorService keyboardMonitorService
+    public ZipCommandMonitorController(
+            ZipCommandMonitorService zipCommandMonitorService
     ) {
-        this.keyboardMonitorService = keyboardMonitorService;
+        this.zipCommandMonitorService = zipCommandMonitorService;
     }
+
+
+
+    // POST /api/zip/command/track/start
 
     @PostMapping("/start")
     public Map<String, Object> start() {
 
-        keyboardMonitorService.startTracking();
+        zipCommandMonitorService.startTracking();
 
         return Map.of(
                 "status", "TRACKING",
@@ -29,11 +34,13 @@ public class KeyboardMonitorController {
         );
     }
 
+    // POST /api/zip/command/track/stop
+
     @PostMapping("/stop")
     public Map<String, Object> stop() {
 
         List<String> commands =
-                keyboardMonitorService.stopTracking();
+                zipCommandMonitorService.stopTracking();
 
         return Map.of(
                 "status", "STOPPED",
@@ -43,15 +50,18 @@ public class KeyboardMonitorController {
         );
     }
 
+    // GET /api/zip/command/track
+
+
     @GetMapping
     public Map<String, Object> status() {
 
         List<String> commands =
-                keyboardMonitorService.getRecordedCommands();
+                zipCommandMonitorService.getRecordedCommands();
 
         return Map.of(
                 "tracking",
-                keyboardMonitorService.isTracking(),
+                zipCommandMonitorService.isTracking(),
                 "commandCount", commands.size(),
                 "commands", commands,
                 "instruction", String.join(",", commands)

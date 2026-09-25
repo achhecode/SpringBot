@@ -1,4 +1,4 @@
-package com.achhecode.SpringBot.automation.keyboard.monitoring;
+package com.achhecode.SpringBot.automation.zip.monitoring;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class GlobalKeyboardMonitor implements KeyboardMonitor, NativeKeyListener {
+public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyListener {
 
     private final List<String> recordedCommands = new ArrayList<>();
 

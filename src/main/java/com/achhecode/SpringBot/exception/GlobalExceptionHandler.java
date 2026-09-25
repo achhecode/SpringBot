@@ -11,9 +11,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(KeyboardExecutionException.class)
+    @ExceptionHandler(ZipCommandExecutionException.class)
     public ResponseEntity<Map<String, Object>> handleKeyboardExecution(
-            KeyboardExecutionException ex
+            ZipCommandExecutionException ex
     ) {
 
         return ResponseEntity

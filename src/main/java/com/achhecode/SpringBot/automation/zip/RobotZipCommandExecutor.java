@@ -1,6 +1,6 @@
-package com.achhecode.SpringBot.automation.keyboard;
+package com.achhecode.SpringBot.automation.zip;
 
-import com.achhecode.SpringBot.exception.KeyboardExecutionException;
+import com.achhecode.SpringBot.exception.ZipCommandExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class RobotKeyboardExecutor implements KeyboardExecutor {
+public class RobotZipCommandExecutor implements ZipCommandExecutor {
 
     private Robot robot;
 
@@ -47,7 +47,7 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
 
     @Override
     public void execute(
-            List<KeyboardCommand> commands,
+            List<ZipCommand> commands,
             int delayMs,
             String executionId
     ) {
@@ -97,7 +97,7 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
             long start = System.nanoTime();
 
 
-            for (KeyboardCommand command : commands) {
+            for (ZipCommand command : commands) {
                 robot.keyPress(command.getKeyCode());
                 robot.keyRelease(command.getKeyCode());
             }
@@ -119,7 +119,7 @@ public class RobotKeyboardExecutor implements KeyboardExecutor {
                     e
             );
 
-            throw new KeyboardExecutionException(
+            throw new ZipCommandExecutionException(
                     "Keyboard automation failed",
                     executionId,
                     e

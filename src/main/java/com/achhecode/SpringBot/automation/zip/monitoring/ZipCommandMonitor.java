@@ -1,8 +1,8 @@
-package com.achhecode.SpringBot.automation.keyboard.monitoring;
+package com.achhecode.SpringBot.automation.zip.monitoring;
 
 import java.util.List;
 
-public interface KeyboardMonitor {
+public interface ZipCommandMonitor {
 
     void start();
 
