@@ -31,6 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
-src/main/java/com/.DS_Store
 
+### macOS ###
+.DS_Store
+
+### Logs ###
 logs/**
