@@ -25,15 +25,12 @@ public class RobotZipCommandExecutor
     public void initialize() {
         try {
             robot = new Robot();
-
             robot.setAutoDelay(0);
             robot.setAutoWaitForIdle(false);
 
             log.info("Java Robot initialized successfully");
 
         } catch (AWTException e) {
-            log.error("Unable to initialize Java Robot", e);
-
             throw new IllegalStateException(
                     "Unable to initialize Java Robot",
                     e
@@ -108,7 +105,7 @@ public class RobotZipCommandExecutor
 
             log.info(
                     "Keyboard automation completed. " +
-                    "executionId={}, requestedCount={}, " +
+                    "executionId={}, requestedCount={}",
                     executionId,
                     commands.size()
             );
