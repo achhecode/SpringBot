@@ -12,7 +12,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ZipCommandExecutionException.class)
-    public ResponseEntity<Map<String, Object>> handleKeyboardExecution(
+    public ResponseEntity<Map<String, Object>> handleZipCommandExecution(
             ZipCommandExecutionException ex
     ) {
 
