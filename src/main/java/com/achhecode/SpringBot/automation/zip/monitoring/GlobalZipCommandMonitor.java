@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,21 +39,38 @@ public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyList
 
             hookRegistered = true;
 
-            log.info("JNativeHook global keyboard hook registered");
+            log.info("JNativeHook global keyboard hook registered successfully");
 
         } catch (NativeHookException e) {
 
-            log.error("Failed to register JNativeHook", e);
+            hookRegistered = false;
 
-            throw new IllegalStateException(
-                    "Unable to initialize global keyboard monitoring",
-                    e
+            log.error(
+                "Unable to register JNativeHook global keyboard hook. " +
+                "Keyboard tracking will be unavailable.",
+                e
+            );
+        } catch (Throwable e) {
+
+            hookRegistered = false;
+
+            log.error(
+                "Unexpected error while initializing JNativeHook. " +
+                "Keyboard tracking will be unavailable.",
+                e
             );
         }
     }
 
     @Override
     public synchronized void start() {
+
+        if (!hookRegistered) {
+            throw new IllegalStateException(
+                "Global keyboard monitoring is unavailable. " +
+                "JNativeHook could not be initialized."
+            );
+        }
 
         if (running) {
             log.warn("Keyboard monitoring is already running");
@@ -78,8 +96,8 @@ public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyList
         List<String> result = List.copyOf(recordedCommands);
 
         log.info(
-                "Global keyboard monitoring stopped. commandCount={}",
-                result.size()
+            "Global keyboard monitoring stopped. commandCount={}",
+            result.size()
         );
 
         return result;
@@ -122,9 +140,9 @@ public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyList
         recordedCommands.add(command);
 
         log.debug(
-                "Arrow key captured: {}. total={}",
-                command,
-                recordedCommands.size()
+            "Arrow key captured: {}. total={}",
+            command,
+            recordedCommands.size()
         );
     }
 
@@ -148,6 +166,7 @@ public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyList
         }
 
         try {
+
             GlobalScreen.removeNativeKeyListener(this);
             GlobalScreen.unregisterNativeHook();
 
@@ -158,8 +177,8 @@ public class GlobalZipCommandMonitor implements ZipCommandMonitor, NativeKeyList
         } catch (NativeHookException e) {
 
             log.warn(
-                    "Failed to unregister JNativeHook during shutdown",
-                    e
+                "Failed to unregister JNativeHook during shutdown",
+                e
             );
         }
     }

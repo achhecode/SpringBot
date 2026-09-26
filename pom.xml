@@ -10,7 +10,8 @@
 	</parent>
 	<groupId>com.achhecode</groupId>
 	<artifactId>SpringBot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<!-- <version>0.0.1-SNAPSHOT</version> -->
+	<version>1.0.0</version>
 	<name/>
 	<description/>
 	<url/>
@@ -65,53 +66,113 @@
 
 	<build>
 		<plugins>
+
+			<!-- Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+
 				<configuration>
-					<jvmArguments>
+					<!-- Use PropertiesLauncher so external libraries can be loaded -->
+					<layout>ZIP</layout>
+
+					<!-- JNativeHook must NOT be nested inside the Spring Boot JAR -->
+					<excludes>
+						<exclude>
+							<groupId>com.github.kwhat</groupId>
+							<artifactId>jnativehook</artifactId>
+						</exclude>
+					</excludes>
+
+					<!-- Used by mvn spring-boot:run -->
+					<!-- <jvmArguments>
 						-Djava.awt.headless=false
 						-Dapple.awt.UIElement=true
-						<!-- Tells macOS this Java process is a background/UI-element application -->
-					</jvmArguments>
+					</jvmArguments> -->
 				</configuration>
 			</plugin>
+
+			<!-- Copy JNativeHook outside the executable JAR -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
+				<artifactId>maven-dependency-plugin</artifactId>
+
 				<executions>
 					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
+						<id>copy-jnativehook</id>
+						<phase>package</phase>
+
 						<goals>
-							<goal>compile</goal>
+							<goal>copy</goal>
 						</goals>
+
 						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.github.kwhat</groupId>
+									<artifactId>jnativehook</artifactId>
+									<version>2.2.2</version>
+
+									<outputDirectory>
+										${project.build.directory}/lib
+									</outputDirectory>
+
+									<destFileName>
+										jnativehook-2.2.2.jar
+									</destFileName>
+								</artifactItem>
+							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Compiler -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+
+				<executions>
+
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+
+						<goals>
+							<goal>compile</goal>
+						</goals>
+
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 

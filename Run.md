@@ -104,3 +104,9 @@ Or:
 ```sh
 curl http://localhost:8080/api/health
 ```
+
+
+
+
+jar tf target/SpringBot-1.0.0.jar | grep -i jnativehook
+BOOT-INF/lib/jnativehook-2.2.2.jar

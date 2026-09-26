@@ -46,7 +46,46 @@ mvn spring-boot:run
 Or run the packaged JAR:
 
 ```bash
-java -Djava.awt.headless=false -Dapple.awt.UIElement=true -jar target/SpringBot-0.0.1-SNAPSHOT.jar
+
+mkdir -p logs
+
+
+java \
+  -Djava.awt.headless=false \
+  -Dapple.awt.UIElement=true \
+  -Dloader.path=release/lib \
+  -jar release/SpringBot-1.0.0.jar \
+  > logs/springbot-console.log 2>&1
+
+```
+
+Run it in background
+
+```bash
+mkdir -p logs
+
+nohup java \
+  -Djava.awt.headless=false \
+  -Dapple.awt.UIElement=true \
+  -Dloader.path=release/lib \
+  -jar release/SpringBot-1.0.0.jar \
+  > logs/springbot-console.log 2>&1 &
+```
+
+
+You'll immediately get the PID:
+```sh
+echo $!
+```
+Follow the log
+
+```sh
+tail -f logs/springbot-console.log
+```
+
+Stop it:
+```sh
+pkill -f 'SpringBot-1.0.0.jar'
 ```
 
 The application runs on:
