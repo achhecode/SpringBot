@@ -1,11 +1,10 @@
 package com.achhecode.SpringBot.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import com.achhecode.SpringBot.automation.zip.ZipCommand;
 import com.achhecode.SpringBot.automation.zip.ZipCommandExecutor;
 import com.achhecode.SpringBot.automation.zip.ZipCommandParser;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,35 +24,91 @@ public class ZipCommandService {
         this.zipCommandExecutor = zipCommandExecutor;
     }
 
-    public void executeCommand(String instruction, int delayMs) {
+    /**
+     * Parse and execute a keyboard instruction.
+     *
+     * Example:
+     *
+     * UP,UP,LEFT,RIGHT
+     */
+    public void executeCommand(
+            String instruction,
+            int delayMs
+    ) {
 
         String executionId = UUID.randomUUID().toString();
 
         long startTime = System.currentTimeMillis();
 
         log.info(
-                "Keyboard automation started. executionId={}, commandLength={}",
+                "Keyboard automation request received. executionId={}, instructionLength={}, delayMs={}",
                 executionId,
-                instruction != null ? instruction.length() : 0
+                instruction != null ? instruction.length() : 0,
+                delayMs
         );
 
         try {
 
-            List<ZipCommand> commands = parser.parse(instruction);
+            /*
+             * Basic validation.
+             */
+            if (instruction == null || instruction.isBlank()) {
+
+                log.warn(
+                        "Empty keyboard instruction. executionId={}",
+                        executionId
+                );
+
+                throw new IllegalArgumentException(
+                        "Keyboard instruction cannot be empty"
+                );
+            }
+
+            /*
+             * Prevent unreasonable delays.
+             */
+            if (delayMs < 0) {
+
+                throw new IllegalArgumentException(
+                        "delayMs cannot be negative"
+                );
+            }
+
+            /*
+             * Parse instruction.
+             */
+            List<ZipCommand> commands =
+                    parser.parse(instruction);
+
+            if (commands == null || commands.isEmpty()) {
+
+                log.warn(
+                        "No commands generated from instruction. executionId={}",
+                        executionId
+                );
+
+                throw new IllegalArgumentException(
+                        "No valid keyboard commands found"
+                );
+            }
 
             log.info(
-                    "Keyboard instructions parsed. executionId={}, commandCount={}",
+                    "Keyboard instruction parsed. executionId={}, commandCount={}",
                     executionId,
                     commands.size()
             );
 
+            /*
+             * Execute commands.
+             */
             zipCommandExecutor.execute(
                     commands,
                     delayMs,
                     executionId
             );
 
-            long duration = System.currentTimeMillis() - startTime;
+            long duration =
+                    System.currentTimeMillis() - startTime;
 
             log.info(
                     "Keyboard automation completed successfully. executionId={}, commandCount={}, durationMs={}",
@@ -64,7 +119,8 @@ public class ZipCommandService {
 
         } catch (Exception e) {
 
-            long duration = System.currentTimeMillis() - startTime;
+            long duration =
+                    System.currentTimeMillis() - startTime;
 
             log.error(
                     "Keyboard automation failed. executionId={}, durationMs={}, error={}",
@@ -78,30 +134,54 @@ public class ZipCommandService {
         }
     }
 
-
-    public String reverseInstruction(String instruction) {
+    /**
+     * Reverse a keyboard movement instruction.
+     *
+     * Example:
+     *
+     * UP,LEFT,RIGHT
+     *
+     * becomes:
+     *
+     * LEFT,RIGHT,DOWN
+     */
+    public String reverseInstruction(
+            String instruction
+    ) {
 
         if (instruction == null || instruction.isBlank()) {
             return "";
         }
 
-        String[] commands = instruction.split(",");
+        String[] commands =
+                instruction.split(",");
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder result =
+                new StringBuilder();
 
         for (int i = commands.length - 1; i >= 0; i--) {
 
-            String command = commands[i].trim().toUpperCase();
+            String command =
+                    commands[i]
+                            .trim()
+                            .toUpperCase();
 
-            String reversedCommand = switch (command) {
-                case "UP" -> "DOWN";
-                case "DOWN" -> "UP";
-                case "LEFT" -> "RIGHT";
-                case "RIGHT" -> "LEFT";
-                default -> throw new IllegalArgumentException(
-                        "Unsupported keyboard command: " + command
-                );
-            };
+            String reversedCommand =
+                    switch (command) {
+
+                        case "UP" -> "DOWN";
+
+                        case "DOWN" -> "UP";
+
+                        case "LEFT" -> "RIGHT";
+
+                        case "RIGHT" -> "LEFT";
+
+                        default -> throw new IllegalArgumentException(
+                                "Unsupported keyboard command: "
+                                        + command
+                        );
+                    };
 
             if (result.length() > 0) {
                 result.append(",");

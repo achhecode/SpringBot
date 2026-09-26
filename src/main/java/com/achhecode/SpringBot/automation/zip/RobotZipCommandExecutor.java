@@ -1,11 +1,13 @@
 package com.achhecode.SpringBot.automation.zip;
 
 import com.achhecode.SpringBot.exception.ZipCommandExecutionException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.awt.AWTException;
+import java.awt.GraphicsEnvironment;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -16,55 +18,128 @@ public class RobotZipCommandExecutor implements ZipCommandExecutor {
 
     private Robot robot;
 
-    @Value("${automation.keyboard.preparation-delay-ms:0}")
+    @Value("${automation.keyboard.enabled:true}")
+    private boolean enabled;
+
+    @Value("${automation.keyboard.preparation-delay-ms:100}")
     private int preparationDelayMs;
 
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
-    @Value("${automation.keyboard.switch-delay-ms:0}")
+    @Value("${automation.keyboard.switch-delay-ms:100}")
     private int switchDelayMs;
-    
+
+    @PostConstruct
+    public void initialize() {
+
+        if (!enabled) {
+            log.info("Keyboard automation is disabled");
+            return;
+        }
+
+        if (GraphicsEnvironment.isHeadless()) {
+            log.warn("Keyboard automation unavailable: JVM is running in headless mode");
+            return;
+        }
+
+        try {
+            robot = new Robot();
+            robot.setAutoDelay(0);
+            robot.setAutoWaitForIdle(false);
+
+            log.info("Java Robot initialized successfully");
+
+        } catch (AWTException e) {
+            log.error("Unable to initialize Java Robot", e);
+            robot = null;
+        }
+    }
+
+    /**
+     * Returns the initialized Robot instance.
+     */
     private Robot getRobot() {
+
+        if (!enabled) {
+            throw new IllegalStateException(
+                    "Keyboard automation is disabled"
+            );
+        }
+
         if (robot == null) {
-            try {
-                robot = new Robot();
-
-                log.info("Java Robot initialized successfully");
-
-            } catch (AWTException e) {
-                log.error("Unable to initialize Java Robot", e);
-
-                throw new IllegalStateException(
-                        "Unable to initialize Java Robot",
-                        e
-                );
-            }
+            throw new IllegalStateException(
+                    "Java Robot is unavailable. Run Spring Boot in a graphical desktop session."
+            );
         }
 
         return robot;
     }
 
+    /**
+     * Executes keyboard commands sequentially.
+     *
+     * synchronized is intentional:
+     * two HTTP requests must never control the keyboard
+     * simultaneously.
+     */
     @Override
-    public void execute(
+    public synchronized void execute(
             List<ZipCommand> commands,
             int delayMs,
             String executionId
     ) {
 
+        if (!enabled) {
+
+            log.warn(
+                    "Keyboard automation request rejected because automation is disabled. executionId={}",
+                    executionId
+            );
+
+            throw new IllegalStateException(
+                    "Keyboard automation is disabled"
+            );
+        }
+
+        if (commands == null || commands.isEmpty()) {
+
+            log.warn(
+                    "No keyboard commands to execute. executionId={}",
+                    executionId
+            );
+
+            return;
+        }
+
         Robot robot = getRobot();
 
         log.info(
-                "Keyboard automation started. executionId={}, commandCount={}, switchApplication={}",
+                "Keyboard automation started. executionId={}, commandCount={}, delayMs={}, switchApplication={}",
                 executionId,
                 commands.size(),
+                delayMs,
                 switchApplication
         );
 
         try {
 
             /*
-             * Switch application FIRST.
+             * Give the user/application time to prepare.
+             */
+            if (preparationDelayMs > 0) {
+
+                log.debug(
+                        "Preparation delay: {} ms. executionId={}",
+                        preparationDelayMs,
+                        executionId
+                );
+
+                robot.delay(preparationDelayMs);
+            }
+
+            /*
+             * Switch to the previous application.
              *
              * macOS:
              * Command + Tab
@@ -72,42 +147,64 @@ public class RobotZipCommandExecutor implements ZipCommandExecutor {
             if (switchApplication) {
 
                 log.debug(
-                        "Switching to previous macOS application. executionId={}",
+                        "Switching to previous application. executionId={}",
                         executionId
                 );
 
-                robot.keyPress(KeyEvent.VK_META);
-
-                try {
-                    robot.keyPress(KeyEvent.VK_TAB);
-                    robot.keyRelease(KeyEvent.VK_TAB);
-                } finally {
-                    robot.keyRelease(KeyEvent.VK_META);
-                }
+                switchToPreviousApplication(robot);
 
                 /*
-                 * Normally 0ms is sufficient.
-                 * Add a delay only if macOS/application needs it.
+                 * Give macOS time to switch the active application.
                  */
                 if (switchDelayMs > 0) {
                     robot.delay(switchDelayMs);
                 }
             }
 
-            long start = System.nanoTime();
+            long startTime = System.nanoTime();
 
+            int executedCount = 0;
 
             for (ZipCommand command : commands) {
-                robot.keyPress(command.getKeyCode());
-                robot.keyRelease(command.getKeyCode());
+
+                if (command == null) {
+                    log.warn(
+                            "Skipping null command. executionId={}",
+                            executionId
+                    );
+                    continue;
+                }
+
+                int keyCode = command.getKeyCode();
+
+                log.debug(
+                        "Executing key. executionId={}, command={}, keyCode={}",
+                        executionId,
+                        command,
+                        keyCode
+                );
+
+                robot.keyPress(keyCode);
+                robot.keyRelease(keyCode);
+
+                executedCount++;
+
+                /*
+                 * Delay between commands.
+                 */
+                if (delayMs > 0) {
+                    robot.delay(delayMs);
+                }
             }
 
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            long elapsedMs =
+                    (System.nanoTime() - startTime) / 1_000_000;
 
             log.info(
-                    "Keyboard commands executed. executionId={}, count={}, elapsedMs={}",
+                    "Keyboard automation completed. executionId={}, requestedCount={}, executedCount={}, elapsedMs={}",
                     executionId,
                     commands.size(),
+                    executedCount,
                     elapsedMs
             );
 
@@ -124,6 +221,33 @@ public class RobotZipCommandExecutor implements ZipCommandExecutor {
                     executionId,
                     e
             );
+        }
+    }
+
+    /**
+     * macOS:
+     *
+     * Command + Tab
+     *
+     * Switches to the previous application.
+     */
+    private void switchToPreviousApplication(Robot robot) {
+
+        log.debug("Executing macOS Command + Tab");
+
+        robot.keyPress(KeyEvent.VK_META);
+
+        try {
+
+            robot.keyPress(KeyEvent.VK_TAB);
+            robot.keyRelease(KeyEvent.VK_TAB);
+
+        } finally {
+
+            /*
+             * Always release META even if something goes wrong.
+             */
+            robot.keyRelease(KeyEvent.VK_META);
         }
     }
 }
