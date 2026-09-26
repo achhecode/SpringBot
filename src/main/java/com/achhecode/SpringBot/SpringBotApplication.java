@@ -7,6 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SpringBotApplication {
 
 	public static void main(String[] args) {
+
+		System.out.println(
+                "java.awt.headless = "
+                        + System.getProperty("java.awt.headless")
+        );
+
 		SpringApplication.run(SpringBotApplication.class, args);
 	}
 
