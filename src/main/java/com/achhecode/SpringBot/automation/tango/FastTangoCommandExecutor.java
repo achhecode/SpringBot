@@ -76,6 +76,9 @@ public class FastTangoCommandExecutor implements TangoCommandExecutor {
     @Value("${automation.keyboard.tango.post-switch-delay-ms:200}")
     private long postSwitchDelayMs;
 
+    @Value("${automation.keyboard.combo-delay-ms:50}")
+    private long comboDelayMs;
+
     private Pointer eventSource;
 
     @PostConstruct
@@ -187,13 +190,33 @@ public class FastTangoCommandExecutor implements TangoCommandExecutor {
     }
 
     private void postCombo(short modifierKey, short key) {
-        Pointer modDown = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(eventSource, modifierKey, true);
+        Pointer modDown = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(
+            eventSource, modifierKey, true
+        );
         CoreGraphics.INSTANCE.CGEventPost(K_CG_HID_EVENT_TAP, modDown);
         CoreGraphics.INSTANCE.CFRelease(modDown);
 
-        postKey(key);
+        sleep(comboDelayMs);
 
-        Pointer modUp = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(eventSource, modifierKey, false);
+        Pointer keyDown = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(
+            eventSource, key, true
+        );
+        CoreGraphics.INSTANCE.CGEventPost(K_CG_HID_EVENT_TAP, keyDown);
+        CoreGraphics.INSTANCE.CFRelease(keyDown);
+
+        sleep(comboDelayMs);
+
+        Pointer keyUp = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(
+            eventSource, key, false
+        );
+        CoreGraphics.INSTANCE.CGEventPost(K_CG_HID_EVENT_TAP, keyUp);
+        CoreGraphics.INSTANCE.CFRelease(keyUp);
+
+        sleep(comboDelayMs);
+
+        Pointer modUp = CoreGraphics.INSTANCE.CGEventCreateKeyboardEvent(
+            eventSource, modifierKey, false
+        );
         CoreGraphics.INSTANCE.CGEventPost(K_CG_HID_EVENT_TAP, modUp);
         CoreGraphics.INSTANCE.CFRelease(modUp);
     }
