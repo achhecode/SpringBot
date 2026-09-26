@@ -1,9 +1,9 @@
 package com.achhecode.SpringBot.automation.typing;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import com.achhecode.SpringBot.exception.KeyboardExecutionException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -18,19 +18,27 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
 
     private Robot robot;
 
+    @Value("${automation.keyboard.switch-application:true}")
+    private boolean switchApplication;
+
+    @Value("${automation.keyboard.switch-delay-ms:0}")
+    private int switchDelayMs;
+
+    @Value("${automation.keyboard.preparation-delay-ms:0}")
+    private int preparationDelayMs;
+
     private Robot getRobot() {
-
         if (robot == null) {
-
             try {
-
                 robot = new Robot();
 
                 log.info("Java Robot initialized for text typing");
 
             } catch (AWTException e) {
-
-                log.error("Unable to initialize Java Robot", e);
+                log.error(
+                        "Unable to initialize Java Robot",
+                        e
+                );
 
                 throw new IllegalStateException(
                         "Unable to initialize Java Robot",
@@ -50,12 +58,10 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
     ) {
 
         if (text == null || text.isEmpty()) {
-
             log.warn(
                     "Empty text received. executionId={}",
                     executionId
             );
-
             return;
         }
 
@@ -63,10 +69,53 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
 
         try {
 
+            /*
+             * -------------------------------------------------
+             * 1. Switch to previous application
+             * -------------------------------------------------
+             *
+             * Example:
+             *
+             * Postman -> Brave
+             *
+             * Command + Tab switches to the previous application.
+             */
+            if (switchApplication) {
+
+                log.debug(
+                        "Switching to previous application. executionId={}",
+                        executionId
+                );
+
+                robot.keyPress(KeyEvent.VK_META);
+
+                try {
+                    robot.keyPress(KeyEvent.VK_TAB);
+                    robot.keyRelease(KeyEvent.VK_TAB);
+                } finally {
+                    robot.keyRelease(KeyEvent.VK_META);
+                }
+
+                if (switchDelayMs > 0) {
+                    robot.delay(switchDelayMs);
+                }
+            }
+
+            /*
+             * -------------------------------------------------
+             * 2. Allow target application to receive focus
+             * -------------------------------------------------
+             */
+            if (preparationDelayMs > 0) {
+                robot.delay(preparationDelayMs);
+            }
+
             long start = System.nanoTime();
 
             /*
-             * Put complete text into the macOS clipboard.
+             * -------------------------------------------------
+             * 3. Put complete text into macOS clipboard
+             * -------------------------------------------------
              */
             Clipboard clipboard =
                     Toolkit.getDefaultToolkit()
@@ -75,35 +124,41 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
             StringSelection selection =
                     new StringSelection(text);
 
-            clipboard.setContents(selection, null);
+            clipboard.setContents(
+                    selection,
+                    null
+            );
 
             /*
-             * Paste using Command + V.
+             * -------------------------------------------------
+             * 4. Paste using Command + V
+             * -------------------------------------------------
              */
             robot.keyPress(KeyEvent.VK_META);
 
             try {
-
                 robot.keyPress(KeyEvent.VK_V);
                 robot.keyRelease(KeyEvent.VK_V);
-
             } finally {
-
                 robot.keyRelease(KeyEvent.VK_META);
             }
 
             /*
-             * Optional delay after paste.
+             * -------------------------------------------------
+             * 5. Optional delay after paste
+             * -------------------------------------------------
              */
             if (delayMs > 0) {
                 robot.delay(delayMs);
             }
 
             long elapsedMs =
-                    (System.nanoTime() - start) / 1_000_000;
+                    (System.nanoTime() - start)
+                            / 1_000_000;
 
             log.info(
-                    "Fast text typing completed. executionId={}, characters={}, elapsedMs={}",
+                    "Fast text typing completed. " +
+                    "executionId={}, characters={}, elapsedMs={}",
                     executionId,
                     text.length(),
                     elapsedMs
