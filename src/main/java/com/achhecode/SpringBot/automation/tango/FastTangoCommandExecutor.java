@@ -63,17 +63,17 @@ public class FastTangoCommandExecutor implements TangoCommandExecutor {
     /**
      * Delay in milliseconds after each Tango command, so the target app
      * has time to process it. Override via:
-     *   automation.keyboard.tango.command-delay-ms=20
+     *   automation.keyboard.command-delay-ms=20
      */
-    @Value("${automation.keyboard.tango.command-delay-ms:20}")
+    @Value("${automation.keyboard.command-delay-ms:20}")
     private long commandDelayMs;
 
     /**
      * Delay in milliseconds after the Cmd+Tab application switch, before
      * the first command is sent. Override via:
-     *   automation.keyboard.tango.post-switch-delay-ms=200
+     *   automation.keyboard.post-switch-delay-ms=200
      */
-    @Value("${automation.keyboard.tango.post-switch-delay-ms:200}")
+    @Value("${automation.keyboard.post-switch-delay-ms:200}")
     private long postSwitchDelayMs;
 
     @Value("${automation.keyboard.combo-delay-ms:50}")

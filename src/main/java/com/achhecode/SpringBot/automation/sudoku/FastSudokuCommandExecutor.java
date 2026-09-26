@@ -60,17 +60,17 @@ public class FastSudokuCommandExecutor implements SudokuCommandExecutor {
     /**
      * Delay in milliseconds after each Sudoku command (digit/arrow/etc),
      * so the target app has time to process it. Override via:
-     *   automation.keyboard.sudoku.command-delay-ms=20
+     *   automation.keyboard.command-delay-ms=20
      */
-    @Value("${automation.keyboard.sudoku.command-delay-ms:20}")
+    @Value("${automation.keyboard.command-delay-ms:20}")
     private long commandDelayMs;
 
     /**
      * Delay in milliseconds after the Cmd+Tab application switch, before
      * the first command is sent. Override via:
-     *   automation.keyboard.sudoku.post-switch-delay-ms=200
+     *   automation.keyboard.post-switch-delay-ms=200
      */
-    @Value("${automation.keyboard.sudoku.post-switch-delay-ms:200}")
+    @Value("${automation.keyboard.post-switch-delay-ms:200}")
     private long postSwitchDelayMs;
 
     @Value("${automation.keyboard.combo-delay-ms:50}")
