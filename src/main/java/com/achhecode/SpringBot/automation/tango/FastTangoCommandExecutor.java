@@ -1,6 +1,6 @@
-package com.achhecode.SpringBot.automation.zip;
+package com.achhecode.SpringBot.automation.tango;
 
-import com.achhecode.SpringBot.exception.ZipCommandExecutionException;
+import com.achhecode.SpringBot.exception.TangoCommandExecutionException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class FastZipCommandExecutor implements ZipCommandExecutor {
+public class FastTangoCommandExecutor implements TangoCommandExecutor {
 
     public interface CoreGraphics extends Library {
         CoreGraphics INSTANCE = Native.load("CoreGraphics", CoreGraphics.class);
@@ -31,31 +31,49 @@ public class FastZipCommandExecutor implements ZipCommandExecutor {
     // macOS virtual keycodes (NOT java.awt.event.KeyEvent codes)
     private static final short MAC_VK_COMMAND = 0x37;
     private static final short MAC_VK_TAB = 0x30;
+
     private static final short MAC_VK_UP_ARROW = 0x7E;
     private static final short MAC_VK_DOWN_ARROW = 0x7D;
     private static final short MAC_VK_LEFT_ARROW = 0x7B;
     private static final short MAC_VK_RIGHT_ARROW = 0x7C;
 
+    private static final short MAC_VK_0 = 0x1D;
+    private static final short MAC_VK_1 = 0x12;
+    private static final short MAC_VK_2 = 0x13;
+    private static final short MAC_VK_3 = 0x14;
+    private static final short MAC_VK_4 = 0x15;
+    private static final short MAC_VK_5 = 0x17;
+    private static final short MAC_VK_6 = 0x16;
+    private static final short MAC_VK_7 = 0x1A;
+    private static final short MAC_VK_8 = 0x1C;
+    private static final short MAC_VK_9 = 0x19;
+
+    private static final short MAC_VK_DELETE = 0x33;        // backspace
+    private static final short MAC_VK_FORWARD_DELETE = 0x75; // delete
+    private static final short MAC_VK_RETURN = 0x24;         // enter
+    private static final short MAC_VK_SPACE = 0x31;
+
+    // Letter keys, in case Tango uses e.g. 'S'/'M' toggles
+    private static final short MAC_VK_S = 0x01;
+    private static final short MAC_VK_M = 0x2E;
+
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
     /**
-     * Delay in milliseconds after each arrow command, so the target
-     * application has time to actually process the keystroke before the
-     * next one arrives. Override via application.properties/yml or an
-     * env var, e.g.:
-     *   automation.keyboard.command-delay-ms=20
+     * Delay in milliseconds after each Tango command, so the target app
+     * has time to process it. Override via:
+     *   automation.keyboard.tango.command-delay-ms=20
      */
-    @Value("${automation.keyboard.command-delay-ms:20}")
+    @Value("${automation.keyboard.tango.command-delay-ms:20}")
     private long commandDelayMs;
 
     /**
      * Delay in milliseconds after the Cmd+Tab application switch, before
-     * the first arrow command is sent — gives the target app time to
-     * actually gain focus. Override via:
-     *   automation.keyboard.post-switch-delay-ms=200
+     * the first command is sent. Override via:
+     *   automation.keyboard.tango.post-switch-delay-ms=200
      */
-    @Value("${automation.keyboard.post-switch-delay-ms:200}")
+    @Value("${automation.keyboard.tango.post-switch-delay-ms:200}")
     private long postSwitchDelayMs;
 
     private Pointer eventSource;
@@ -65,17 +83,18 @@ public class FastZipCommandExecutor implements ZipCommandExecutor {
         eventSource = CoreGraphics.INSTANCE.CGEventSourceCreate(
             K_CG_EVENT_SOURCE_STATE_COMBINED_SESSION_STATE
         );
-        log.info("CGEventSource initialized for fast keyboard automation");
+        log.info("CGEventSource initialized for fast Tango keyboard automation");
     }
 
     @Override
-    public synchronized void execute(List<ZipCommand> commands, String executionId) {
+    public synchronized void execute(List<TangoInputCommand> commands, String executionId) {
+
         if (commands == null || commands.isEmpty()) {
-            log.warn("No keyboard commands to execute. executionId={}", executionId);
+            log.warn("No Tango commands to execute. executionId={}", executionId);
             return;
         }
 
-        long totalStart = System.nanoTime();
+        long start = System.nanoTime();
 
         try {
             if (switchApplication) {
@@ -85,25 +104,34 @@ public class FastZipCommandExecutor implements ZipCommandExecutor {
                 }
             }
 
+            int lastIndex = commands.size() - 1;
             for (int i = 0; i < commands.size(); i++) {
-                short macKey = keyCodeToMacVirtualKey(commands.get(i).getKeyCode());
+                TangoInputCommand command = commands.get(i);
+                if (command == null) {
+                    continue;
+                }
+
+                short macKey = keyCodeToMacVirtualKey(command.getKeyCode());
                 postKey(macKey);
 
-                boolean isLastCommand = i == commands.size() - 1;
-                if (commandDelayMs > 0 && !isLastCommand) {
+                if (commandDelayMs > 0 && i != lastIndex) {
                     sleep(commandDelayMs);
                 }
             }
 
-            long totalMs = (System.nanoTime() - totalStart) / 1_000_000;
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             log.info(
-                "Fast keyboard automation completed. executionId={}, commandCount={}, totalMs={}",
-                executionId, commands.size(), totalMs
+                "Tango commands executed. executionId={}, count={}, elapsedMs={}",
+                executionId, commands.size(), elapsedMs
             );
 
         } catch (Exception e) {
-            log.error("Fast keyboard automation failed. executionId={}", executionId, e);
-            throw new ZipCommandExecutionException("Keyboard automation failed", executionId, e);
+            log.error("Tango keyboard automation failed. executionId={}", executionId, e);
+            throw new TangoCommandExecutionException(
+                "Tango keyboard automation failed",
+                executionId,
+                e
+            );
         }
     }
 
@@ -112,8 +140,8 @@ public class FastZipCommandExecutor implements ZipCommandExecutor {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ZipCommandExecutionException(
-                "Keyboard automation interrupted during inter-command delay",
+            throw new TangoCommandExecutionException(
+                "Tango keyboard automation interrupted during inter-command delay",
                 "n/a",
                 e
             );
@@ -126,6 +154,22 @@ public class FastZipCommandExecutor implements ZipCommandExecutor {
             case KeyEvent.VK_DOWN -> MAC_VK_DOWN_ARROW;
             case KeyEvent.VK_LEFT -> MAC_VK_LEFT_ARROW;
             case KeyEvent.VK_RIGHT -> MAC_VK_RIGHT_ARROW;
+            case KeyEvent.VK_0, KeyEvent.VK_NUMPAD0 -> MAC_VK_0;
+            case KeyEvent.VK_1, KeyEvent.VK_NUMPAD1 -> MAC_VK_1;
+            case KeyEvent.VK_2, KeyEvent.VK_NUMPAD2 -> MAC_VK_2;
+            case KeyEvent.VK_3, KeyEvent.VK_NUMPAD3 -> MAC_VK_3;
+            case KeyEvent.VK_4, KeyEvent.VK_NUMPAD4 -> MAC_VK_4;
+            case KeyEvent.VK_5, KeyEvent.VK_NUMPAD5 -> MAC_VK_5;
+            case KeyEvent.VK_6, KeyEvent.VK_NUMPAD6 -> MAC_VK_6;
+            case KeyEvent.VK_7, KeyEvent.VK_NUMPAD7 -> MAC_VK_7;
+            case KeyEvent.VK_8, KeyEvent.VK_NUMPAD8 -> MAC_VK_8;
+            case KeyEvent.VK_9, KeyEvent.VK_NUMPAD9 -> MAC_VK_9;
+            case KeyEvent.VK_BACK_SPACE -> MAC_VK_DELETE;
+            case KeyEvent.VK_DELETE -> MAC_VK_FORWARD_DELETE;
+            case KeyEvent.VK_ENTER -> MAC_VK_RETURN;
+            case KeyEvent.VK_SPACE -> MAC_VK_SPACE;
+            case KeyEvent.VK_S -> MAC_VK_S;
+            case KeyEvent.VK_M -> MAC_VK_M;
             default -> throw new IllegalArgumentException(
                 "No macOS virtual keycode mapping for java VK code: " + javaVkCode
             );
