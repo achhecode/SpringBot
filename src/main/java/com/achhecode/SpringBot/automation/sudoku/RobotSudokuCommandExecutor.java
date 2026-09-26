@@ -17,9 +17,6 @@ public class RobotSudokuCommandExecutor
 
     private Robot robot;
 
-    @Value("${automation.keyboard.preparation-delay-ms:0}")
-    private int preparationDelayMs;
-
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
@@ -98,9 +95,6 @@ public class RobotSudokuCommandExecutor
             /*
              * Allow Sudoku application to receive focus.
              */
-            if (preparationDelayMs > 0) {
-                robot.delay(preparationDelayMs);
-            }
 
             long start = System.nanoTime();
 

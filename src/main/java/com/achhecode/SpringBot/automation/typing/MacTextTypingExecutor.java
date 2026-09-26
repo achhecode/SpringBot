@@ -21,9 +21,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
-    @Value("${automation.keyboard.preparation-delay-ms:0}")
-    private int preparationDelayMs;
-
     private Robot getRobot() {
         if (robot == null) {
             try {
@@ -98,9 +95,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
              * 2. Allow target application to receive focus
              * -------------------------------------------------
              */
-            if (preparationDelayMs > 0) {
-                robot.delay(preparationDelayMs);
-            }
 
             long start = System.nanoTime();
 

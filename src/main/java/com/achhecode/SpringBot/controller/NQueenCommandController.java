@@ -1,6 +1,8 @@
 package com.achhecode.SpringBot.controller;
 
 import com.achhecode.SpringBot.automation.nqueen.NQueenCommandService;
+import com.achhecode.SpringBot.automation.nqueen.NQueenRequest;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,16 +26,12 @@ public class NQueenCommandController {
 
     @PostMapping("/execute")
     public ResponseEntity<Map<String, Object>> execute(
-            @RequestParam int n,
-            @RequestParam String positions
-    ) {
+                @RequestBody NQueenRequest request) {
 
-        String executionId =
-                UUID.randomUUID().toString();
+        String executionId = UUID.randomUUID().toString();
 
-        nQueenCommandService.executeCommand(
-                n,
-                positions,
+        int n = nQueenCommandService.executeCommand(
+                request.positions(),
                 executionId
         );
 
@@ -42,9 +40,8 @@ public class NQueenCommandController {
                         "success", true,
                         "executionId", executionId,
                         "n", n,
-                        "message",
-                        "N-Queen keyboard automation executed"
+                        "message", "N-Queen keyboard automation executed"
                 )
         );
-    }
+        }
 }

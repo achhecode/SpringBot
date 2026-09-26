@@ -3,40 +3,58 @@ package com.achhecode.SpringBot.automation.nqueen;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 public class NQueenCommandService {
 
-    private final NQueenPositionParser parser;
     private final NQueenCommandGenerator generator;
     private final NQueenCommandExecutor executor;
 
     public NQueenCommandService(
-            NQueenPositionParser parser,
             NQueenCommandGenerator generator,
             NQueenCommandExecutor executor
     ) {
-
-        this.parser = parser;
         this.generator = generator;
         this.executor = executor;
     }
 
-    public void executeCommand(
-            int n,
-            String instruction,
+    public int executeCommand(
+            List<Integer> positions,
             String executionId
     ) {
 
-        long startTime =
-                System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
         try {
 
+            if (positions == null || positions.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "N-Queen positions cannot be null or empty"
+                );
+            }
+
+            int n = positions.size();
+
             List<NQueenPosition> queenPositions =
-                    parser.parse(instruction);
+                    new ArrayList<>(n);
+
+            for (int row = 0; row < n; row++) {
+
+                Integer column = positions.get(row);
+
+                if (column == null) {
+                    throw new IllegalArgumentException(
+                            "Queen column cannot be null. row=" + row
+                    );
+                }
+
+                queenPositions.add(
+                        new NQueenPosition(row, column)
+                );
+            }
 
             List<NQueenInputCommand> inputCommands =
                     generator.generate(
@@ -60,8 +78,7 @@ public class NQueenCommandService {
             );
 
             long duration =
-                    System.currentTimeMillis()
-                            - startTime;
+                    System.currentTimeMillis() - startTime;
 
             log.info(
                     "N-Queen keyboard automation completed. " +
@@ -74,6 +91,8 @@ public class NQueenCommandService {
                     inputCommands.size(),
                     duration
             );
+
+            return n;
 
         } catch (Exception e) {
 
