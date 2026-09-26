@@ -149,6 +149,7 @@ public class RobotTangoCommandExecutor
         }
     }
 
+    @SuppressWarnings("unused")
     private void executeCommand(
             Robot robot,
             TangoInputCommand command

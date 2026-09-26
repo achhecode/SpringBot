@@ -1,7 +1,5 @@
 package com.achhecode.SpringBot.automation.tango;
 
-import java.awt.event.KeyEvent;
-
 public record TangoInputCommand(
         TangoCommand command,
         TangoNavigationCommand navigation
