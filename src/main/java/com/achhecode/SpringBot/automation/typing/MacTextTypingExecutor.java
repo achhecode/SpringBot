@@ -21,9 +21,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
-    @Value("${automation.keyboard.switch-delay-ms:0}")
-    private int switchDelayMs;
-
     @Value("${automation.keyboard.preparation-delay-ms:0}")
     private int preparationDelayMs;
 
@@ -53,7 +50,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
     @Override
     public void type(
             String text,
-            int delayMs,
             String executionId
     ) {
 
@@ -94,10 +90,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
                     robot.keyRelease(KeyEvent.VK_TAB);
                 } finally {
                     robot.keyRelease(KeyEvent.VK_META);
-                }
-
-                if (switchDelayMs > 0) {
-                    robot.delay(switchDelayMs);
                 }
             }
 
@@ -141,15 +133,6 @@ public class MacTextTypingExecutor implements TextTypingExecutor {
                 robot.keyRelease(KeyEvent.VK_V);
             } finally {
                 robot.keyRelease(KeyEvent.VK_META);
-            }
-
-            /*
-             * -------------------------------------------------
-             * 5. Optional delay after paste
-             * -------------------------------------------------
-             */
-            if (delayMs > 0) {
-                robot.delay(delayMs);
             }
 
             long elapsedMs =

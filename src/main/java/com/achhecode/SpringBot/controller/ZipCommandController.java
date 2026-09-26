@@ -20,14 +20,11 @@ public class ZipCommandController {
     }
 
     // POST /api/zip/command?instruction=UP,UP,UP,DOWN,LEFT,LEFT,RIGHT
-
-    // POST /api/zip/command?instruction=UP,UP,UP,DOWN,LEFT,LEFT,RIGHT&delayMS=10
     @PostMapping("/command")
     public String keyboard(
-            @RequestParam String instruction,
-            @RequestParam(defaultValue = "0") int delayMS) {
+            @RequestParam String instruction) {
 
-        zipCommandService.executeCommand(instruction, delayMS);
+        zipCommandService.executeCommand(instruction);
 
         return "Keyboard automation executed";
     }

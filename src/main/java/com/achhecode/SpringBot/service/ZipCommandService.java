@@ -32,8 +32,7 @@ public class ZipCommandService {
      * UP,UP,LEFT,RIGHT
      */
     public void executeCommand(
-            String instruction,
-            int delayMs
+            String instruction
     ) {
 
         String executionId = UUID.randomUUID().toString();
@@ -41,10 +40,9 @@ public class ZipCommandService {
         long startTime = System.currentTimeMillis();
 
         log.info(
-                "Keyboard automation request received. executionId={}, instructionLength={}, delayMs={}",
+                "Keyboard automation request received. executionId={}, instructionLength={}",
                 executionId,
-                instruction != null ? instruction.length() : 0,
-                delayMs
+                instruction != null ? instruction.length() : 0
         );
 
         try {
@@ -61,16 +59,6 @@ public class ZipCommandService {
 
                 throw new IllegalArgumentException(
                         "Keyboard instruction cannot be empty"
-                );
-            }
-
-            /*
-             * Prevent unreasonable delays.
-             */
-            if (delayMs < 0) {
-
-                throw new IllegalArgumentException(
-                        "delayMs cannot be negative"
                 );
             }
 
@@ -103,7 +91,6 @@ public class ZipCommandService {
              */
             zipCommandExecutor.execute(
                     commands,
-                    delayMs,
                     executionId
             );
 

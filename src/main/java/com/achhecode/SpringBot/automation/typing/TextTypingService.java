@@ -36,11 +36,6 @@ public class TextTypingService {
         String executionId =
                 UUID.randomUUID().toString();
 
-        int delayMs =
-                request.delayMs() == null
-                        ? 0
-                        : Math.max(request.delayMs(), 0);
-
         TextTypingMode mode =
                 request.mode() == null
                         ? TextTypingMode.FAST
@@ -54,7 +49,6 @@ public class TextTypingService {
 
                 textTypingExecutor.type(
                         request.text(),
-                        delayMs,
                         executionId
                 );
             }

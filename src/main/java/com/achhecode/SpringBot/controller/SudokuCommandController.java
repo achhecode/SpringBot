@@ -17,11 +17,10 @@ public class SudokuCommandController {
     private final SudokuCommandService sudokuCommandService;
 
 
-    // POST http://localhost:8080/api/sudoku/execute?instruction=123312231&delayMs=50
+    // POST http://localhost:8080/api/sudoku/execute?instruction=123312231
     @PostMapping("/execute")
     public ResponseEntity<Map<String, Object>> execute(
-            @RequestParam String instruction,
-            @RequestParam(defaultValue = "50") int delayMs
+            @RequestParam String instruction
     ) {
 
         String executionId =
@@ -29,7 +28,6 @@ public class SudokuCommandController {
 
         sudokuCommandService.executeCommand(
                 instruction,
-                delayMs,
                 executionId
         );
 

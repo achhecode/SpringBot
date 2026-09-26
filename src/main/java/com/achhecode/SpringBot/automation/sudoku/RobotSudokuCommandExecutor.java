@@ -23,12 +23,6 @@ public class RobotSudokuCommandExecutor
     @Value("${automation.keyboard.switch-application:true}")
     private boolean switchApplication;
 
-    @Value("${automation.keyboard.switch-delay-ms:0}")
-    private int switchDelayMs;
-
-    @Value("${automation.keyboard.command-delay-ms:0}")
-    private int commandDelayMs;
-
     private Robot getRobot() {
 
         if (robot == null) {
@@ -61,7 +55,6 @@ public class RobotSudokuCommandExecutor
     @Override
     public void execute(
             List<SudokuInputCommand> commands,
-            int delayMs,
             String executionId
     ) {
 
@@ -100,10 +93,6 @@ public class RobotSudokuCommandExecutor
 
                     robot.keyRelease(KeyEvent.VK_META);
                 }
-
-                if (switchDelayMs > 0) {
-                    robot.delay(switchDelayMs);
-                }
             }
 
             /*
@@ -121,15 +110,6 @@ public class RobotSudokuCommandExecutor
                         robot,
                         command
                 );
-
-                int effectiveDelay =
-                        delayMs > 0
-                                ? delayMs
-                                : commandDelayMs;
-
-                if (effectiveDelay > 0) {
-                    robot.delay(effectiveDelay);
-                }
             }
 
             long elapsedMs =

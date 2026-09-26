@@ -6,7 +6,6 @@ public interface SudokuCommandExecutor {
 
     void execute(
             List<SudokuInputCommand> commands,
-            int delayMs,
             String executionId
     );
 }

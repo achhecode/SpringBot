@@ -25,7 +25,6 @@ public class SudokuCommandService {
 
     public void executeCommand(
             String instruction,
-            int delayMs,
             String executionId
     ) {
 
@@ -125,7 +124,6 @@ public class SudokuCommandService {
              */
             sudokuCommandExecutor.execute(
                     inputCommands,
-                    delayMs,
                     executionId
             );
 
